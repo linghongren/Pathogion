@@ -1,0 +1,1 @@
+Routing snapping on mobile phones. A small prototype running on Android that demonstrates that it is possible to constantly record a user’s location, then push another user’s track to the phone, and compute potential interaction points on the phone.
