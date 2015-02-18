@@ -22,6 +22,16 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="com.example.ugri.pathogion.Map"
+            android:label="@string/map_name"
+            android:parentActivityName="com.example.ugri.pathogion.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.ugri.pathogion.MainActivity" />
+        </activity>
+
+
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyCmQAnhXdjQYcdJAXWLJ_5aciyuf8Ea8U0"/>
