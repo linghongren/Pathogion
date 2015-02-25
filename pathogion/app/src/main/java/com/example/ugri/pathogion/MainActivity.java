@@ -1,24 +1,30 @@
 package com.example.ugri.pathogion;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.example.ugri.pathogion.Map;
-import com.example.ugri.pathogion.R;
+import com.google.android.gms.common.ErrorDialogFragment;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+
+import static com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayServicesAvailable;
 
 
 public class MainActivity extends ActionBarActivity {
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent intent = new Intent(this, Map.class);
-        startActivity(intent);
+        Intent intent_userLocation = new Intent(this, UserLocation.class);
+ //       Intent intent_map = new Intent(this, Map.class);
+  //      startActivity(intent_map);
+        startActivity(intent_userLocation);
     }
 
 
