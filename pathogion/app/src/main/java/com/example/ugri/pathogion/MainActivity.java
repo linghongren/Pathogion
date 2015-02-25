@@ -1,52 +1,56 @@
 package com.example.ugri.pathogion;
 
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-
-import com.google.android.gms.common.ErrorDialogFragment;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-
-import static com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayServicesAvailable;
 
 
-public class MainActivity extends ActionBarActivity {
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
+
+public class MainActivity extends Activity implements OnMapReadyCallback {
+//    Intent intent_userLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Intent intent_userLocation = new Intent(this, UserLocation.class);
- //       Intent intent_map = new Intent(this, Map.class);
-  //      startActivity(intent_map);
-        startActivity(intent_userLocation);
-    }
+        //code map to the app
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        MapFragment mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+ //       intent_userLocation = new Intent(this, UserLocation.class);
+
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+    public void onMapReady(GoogleMap mMap) {
+//        startActivity(intent_userLocation);
+        LatLng currentLoc = new LatLng(40.7127, -74.0059);
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        mMap.setMyLocationEnabled(true);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLoc, (float) 15.0));
 
-        return super.onOptionsItemSelected(item);
+        //add polyline
+ /*       map.addPolyline(new PolylineOptions().geodesic(true)
+                .add(new LatLng(-33.866, 151.195))  // Sydney
+                .add(new LatLng(-18.142, 178.431))  // Fiji
+                .add(new LatLng(21.291, -157.821))  // Hawaii
+                .add(new LatLng(37.423, -122.091))  // Mountain View
+        );
+  */
+        //add marker
+  /*      map.addMarker(new MarkerOptions()
+                .position(currentLoc)
+                .title("ME"));
+  */
     }
 }

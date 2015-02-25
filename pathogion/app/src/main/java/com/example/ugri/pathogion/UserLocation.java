@@ -48,7 +48,6 @@ public class UserLocation extends ActionBarActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
         //connects with the Google Drive service
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -62,6 +61,7 @@ public class UserLocation extends ActionBarActivity
         //recover the saved state for restarts
         mResolvingError = savedInstanceState != null
                 && savedInstanceState.getBoolean(STATE_RESOLVING_ERROR, false);
+
     }
 
     @Override
@@ -77,8 +77,6 @@ public class UserLocation extends ActionBarActivity
             mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
             mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
         }
-
-        setContentView(mLatitudeText);
     }
 
     @Override
