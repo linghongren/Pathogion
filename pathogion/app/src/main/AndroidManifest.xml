@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.ugri.pathogion" >
+    package="com.example.ugri.pathogion">
 
     <application
         android:allowBackup="true"
@@ -22,7 +22,9 @@
             </intent-filter>
         </activity>
 
-        <activity
+        <service android:name=".UserLocation"/>
+
+<!--        <activity
             android:name="com.example.ugri.pathogion.UserLocation"
             android:label="@string/location_name"
             android:parentActivityName="com.example.ugri.pathogion.MainActivity" >
@@ -30,7 +32,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.ugri.pathogion.MainActivity" />
         </activity>
-
+-->
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyCmQAnhXdjQYcdJAXWLJ_5aciyuf8Ea8U0"/>

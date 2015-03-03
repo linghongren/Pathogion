@@ -15,7 +15,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 
 public class MainActivity extends Activity implements OnMapReadyCallback {
-//    Intent intent_userLocation;
+    Intent intent_userLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,13 +27,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
         MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
- //       intent_userLocation = new Intent(this, UserLocation.class);
+        intent_userLocation = new Intent(this, UserLocation.class);
 
     }
 
     @Override
     public void onMapReady(GoogleMap mMap) {
-//        startActivity(intent_userLocation);
+        startService(intent_userLocation);
         LatLng currentLoc = new LatLng(40.7127, -74.0059);
 
         mMap.setMyLocationEnabled(true);
