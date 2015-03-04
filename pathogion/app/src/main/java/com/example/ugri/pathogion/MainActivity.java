@@ -2,6 +2,7 @@ package com.example.ugri.pathogion;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 
 
@@ -12,6 +13,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends Activity implements OnMapReadyCallback {
@@ -53,4 +56,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback {
                 .title("ME"));
   */
     }
+
+//    public void readUserLocation (ArrayList <Location> userLoc, ArrayList <long> userTime ){
+
+
+  //  }
 }
