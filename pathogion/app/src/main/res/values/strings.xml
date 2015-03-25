@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Pathogion</string>
-    <string name="location_name">Location</string>
-    <string name="action_settings">Settings</string>
+    <string name = "app_name">Pathogion</string>
+    <string name = "button_userLoc">Show User\'s Locations</string>
+    <string name = "button_list"> Options </string>
+    <string name = "button_clearDb">Clear Database</string>
+    <string name = "action_settings">Settings</string>
 
 </resources>

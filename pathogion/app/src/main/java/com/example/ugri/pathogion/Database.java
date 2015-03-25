@@ -75,22 +75,25 @@ public class Database extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void initializeForDataQuery () {
+    public boolean initializeForDataQuery () {
  //       log.i("Database", "getDatabaseInformation");
         db = getReadableDatabase();
 
  //       log.i("Database", "get readable database");
         if (db == null)
-            log.i("getDatabaseInformation", "fail to open a database");
+            return false;
 
-        else{
-            cursor = db.rawQuery("select * from Location", null);
-            cursor.moveToFirst();
-            //       log.i ("database", "cursor initialized");
+        cursor = db.rawQuery("select * from Location", null);
+        cursor.moveToFirst();
+        //       log.i ("database", "cursor initialized");
 
-            int n = cursor.getCount();
-            log.i("cursor count", String.valueOf(n));
-        }
+        int n = cursor.getCount();
+        log.i("cursor count", String.valueOf(n));
+
+        if (n < 1)
+            return false;
+
+        return true;
 
     }
 
@@ -103,7 +106,7 @@ public class Database extends SQLiteOpenHelper {
         Location loc = new Location("Initialize");
         loc.setLatitude(lat);
         loc.setLongitude(longi);
-        loc.setAccuracy((float)accuracy);
+        loc.setAccuracy(accuracy);
         loc.setTime(t);
 
         return loc;
@@ -111,9 +114,7 @@ public class Database extends SQLiteOpenHelper {
 
     //return true if more dataquery can be done, cursor points to the next row in db
     public boolean afterFirstDataQuery(){
-
         return cursor.moveToNext();
-
     }
 
 
