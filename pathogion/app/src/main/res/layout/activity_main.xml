@@ -26,7 +26,6 @@
         android:text="@string/button_clearDb"
         android:onClick="clearDb" />
 -->
-
     <!--fragment element that adds a google map to the app-->
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"

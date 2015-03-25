@@ -9,8 +9,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.location.Location;
 import android.util.Log;
+
+import com.google.android.gms.maps.model.LatLng;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 
 //set up SQLite and methods
@@ -22,6 +29,9 @@ public class Database extends SQLiteOpenHelper {
 
     SQLiteDatabase db;
     Cursor cursor;
+
+    String dateFormat = "yyyy-MM-dd";
+    SimpleDateFormat formatDate = new SimpleDateFormat(dateFormat);
 
     Database(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -75,6 +85,8 @@ public class Database extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    //initializing the cursor and database for reading.
+    //return true if the database is not empty
     public boolean initializeForDataQuery () {
  //       log.i("Database", "getDatabaseInformation");
         db = getReadableDatabase();
@@ -97,24 +109,87 @@ public class Database extends SQLiteOpenHelper {
 
     }
 
+    //return true if more dataquery can be done, cursor points to the next row in db
+    public boolean afterOneDataQuery(){
+        return cursor.moveToNext();
+    }
+
+
     //pass location to the current cursor.
-    public Location passLocation (){
+    public LatLng passLatLng (){
         double lat = cursor.getDouble(0);
         double longi = cursor.getDouble(1);
-        float accuracy = cursor.getFloat(2);
-        long t = cursor.getLong(3);
-        Location loc = new Location("Initialize");
-        loc.setLatitude(lat);
-        loc.setLongitude(longi);
-        loc.setAccuracy(accuracy);
-        loc.setTime(t);
+     //   float accuracy = cursor.getFloat(2);
+        LatLng loc = new LatLng(lat, longi);
+     //   loc.setAccuracy(accuracy);
 
         return loc;
     }
 
-    //return true if more dataquery can be done, cursor points to the next row in db
-    public boolean afterFirstDataQuery(){
-        return cursor.moveToNext();
+    //pass the one date in the database
+    public String passDate (){
+        String date;
+
+        date = formatDate.format (passDateD());
+
+        return date;
+    }
+
+    public Date passDateD(){
+        Date dt = new Date ();
+        long t = cursor.getLong(3);
+        dt.setTime( t );
+
+        return dt;
+    }
+
+    //passing latlng with a given date
+    public List<LatLng> passLatLngDate (String dt){
+        List <LatLng> dLoc = new ArrayList<>();
+
+        Date dDt = new Date();
+
+        //convert string to date, because date objects can be compared.
+        try{
+             dDt = formatDate.parse(dt);
+        }catch(ParseException e) {
+            e.printStackTrace();
+        }
+
+        if (initializeForDataQuery()){
+            while (afterOneDataQuery()){
+                if (dDt.equals(passDateD()))
+                    dLoc.add(passLatLng());
+                else if (dDt.before(passDateD()))
+                    break;
+            }
+
+        }
+
+        return dLoc;
+    }
+
+
+    //return a list that has all the dates in the database
+    public List<String> existingDates (){
+        List<String> date = new ArrayList<>();
+
+        if (initializeForDataQuery()){
+            while (afterOneDataQuery()){
+                String temp = passDate();
+
+                //add new date to the list
+                if (!date.isEmpty()){
+                    if (temp != date.get(date.size()-1))
+                        date.add (temp);
+                }
+                else
+                    date.add (temp);
+
+            }
+        }
+
+        return date;
     }
 
 
