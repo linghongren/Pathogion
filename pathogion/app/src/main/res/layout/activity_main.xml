@@ -6,32 +6,29 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <Button
-        android:layout_width="10dip"
-        android:layout_height="4dip"
-        android:paddingTop = "10dip"
-        android:text="@string/button_list"
-        android:onClick = "displayListMenu"/>
-   
-        
-<!--    <Button
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:text="@string/button_userLoc"
-        android:onClick="mapUserLocation" />
 
-    <Button
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:text="@string/button_clearDb"
-        android:onClick="clearDb" />
--->
-    <!--fragment element that adds a google map to the app-->
+    <FrameLayout xmlns:android = "http://schemas.android.com/apk/res/android"
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/map"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:name="com.google.android.gms.maps.MapFragment"/>
+        android:id = "@+id/fragment_container"
+        android:layout_width = "match_parent"
+        android:layout_height = "match_parent">
+
+         <!--fragment element that adds a google map to the app -->
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:name="com.google.android.gms.maps.MapFragment"/>
+
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="@string/button_sidemenu"
+            android:onClick="callSideMenu"
+            android:layout_gravity="right|bottom" />
+
+
+    </FrameLayout>
+
 
 </LinearLayout>
