@@ -39,7 +39,7 @@ public class Map extends Fragment implements
 //        getActivity().setContentView(R.layout.map);
         //code map to the app
 
-        log.i("start", "map oncreate");
+        log.i("map", "map oncreate");
         MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
 

@@ -1,5 +1,8 @@
 package com.example.ugri.pathogion;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ListFragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +23,7 @@ public class SideMenu extends ListFragment {
 
     String[]options = {"Show Path Date", "Infected Patient","Delete Database", "Return"};
 
+    UserPath userPath = new UserPath();
     Log log;
 
     @Override
@@ -52,10 +56,12 @@ public class SideMenu extends ListFragment {
         log.i("sideMenu", String.valueOf(position));
         switch (position){
             case 0:
+                showPathDate();
                 break;
             case 1:
                 break;
             case 2:
+                clearDb();
                 break;
             case 3:
                 goBack();
@@ -64,18 +70,19 @@ public class SideMenu extends ListFragment {
 
     }
 
-    @Override
-    public void onPause (){
-        super.onPause();
-    }
 
     //calling main activity's hideSideMenu function.
     public void goBack(){
         ((MainActivity)getActivity()).hideSideMenu();
     }
 
+    public void showPathDate(){
+        //call DialogFragment
+
+    }
+
     //a button
-    public void clearDb(View view){
+    public void clearDb(){
         log.i(" clearDb", "clear");
         getActivity().deleteDatabase("userLocationsData");
     }

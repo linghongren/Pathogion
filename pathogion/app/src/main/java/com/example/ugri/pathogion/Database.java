@@ -126,7 +126,7 @@ public class Database extends SQLiteOpenHelper {
         return loc;
     }
 
-    //pass the one date in the database
+    //pass one date in String format in the database
     public String passDate (){
         String date;
 
@@ -135,6 +135,7 @@ public class Database extends SQLiteOpenHelper {
         return date;
     }
 
+    //in Date
     public Date passDateD(){
         Date dt = new Date ();
         long t = cursor.getLong(3);

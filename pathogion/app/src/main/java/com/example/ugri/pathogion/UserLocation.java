@@ -59,7 +59,7 @@ public class UserLocation extends Fragment implements
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setSmallestDisplacement((float)2);
+        mLocationRequest.setSmallestDisplacement((float)10);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
     }
