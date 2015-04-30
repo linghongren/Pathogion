@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent" android:paddingTop="50dp"
+    android:background="?android:attr/activatedBackgroundIndicator">
 
     <TextView
         android:id = "@id/title"
@@ -9,7 +10,7 @@
         android:layout_width="match_parent"
         android:background="#ffffff"
         android:textColor="#000000"
-        android:textSize = "30sp"
+        android:textSize = "20sp"
         android:paddingLeft="15dp"
         android:paddingTop="10dp"/>
 
@@ -17,9 +18,7 @@
         android:id = "@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#ffffff">
-    </ListView>
-
-
+        android:background="#ffffff"
+        android:choiceMode="singleChoice" />
 
 </LinearLayout>

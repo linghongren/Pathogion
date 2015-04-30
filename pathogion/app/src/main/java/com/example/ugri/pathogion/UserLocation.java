@@ -22,7 +22,8 @@ import com.google.android.gms.location.LocationServices;
 
 
 /**
- * Created by UGRI on 3/25/15.
+ * no UI
+ * read user's location updates
  */
 public class UserLocation extends Fragment implements
         GoogleApiClient.ConnectionCallbacks,

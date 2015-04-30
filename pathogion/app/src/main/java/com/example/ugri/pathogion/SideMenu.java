@@ -1,8 +1,9 @@
 package com.example.ugri.pathogion;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+/**
+ * side menu with options to mapping, delete database and show path date
+ */
+
 import android.app.ListFragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,19 +12,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
 
-/**
- * Created by UGRI on 3/25/15.
- */
+
 public class SideMenu extends ListFragment {
 
-    String[]options = {"Show Path Date", "Infected Patient","Delete Database", "Return"};
+    String[]options = {"Show Path Date", "Mapping","Delete Database","Return"};
 
-    UserPath userPath = new UserPath();
     Log log;
 
     @Override
@@ -59,9 +56,9 @@ public class SideMenu extends ListFragment {
                 showPathDate();
                 break;
             case 1:
-                break;
+                showOnMap();
             case 2:
-                clearDb();
+            //    clearDb();
                 break;
             case 3:
                 goBack();
@@ -71,14 +68,19 @@ public class SideMenu extends ListFragment {
     }
 
 
-    //calling main activity's hideSideMenu function.
+    //calling main activity's hideSideMenu function for "return"
     public void goBack(){
         ((MainActivity)getActivity()).hideSideMenu();
     }
 
+    //call main activity's showPath function for "show path date"
     public void showPathDate(){
-        //call DialogFragment
+        ((MainActivity)getActivity()).showPath();
+    }
 
+    //call main activity's showPathosOnMap function for "mapping"
+    public void showOnMap(){
+        ((MainActivity)getActivity()).showPathsOnMap();
     }
 
     //a button
