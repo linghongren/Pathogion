@@ -14,8 +14,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.model.LatLng;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,7 +86,7 @@ public class ShowPath extends ListFragment {
     //calling main activity's hidePathList function.
     public void goBack(){
         if (! selected.equals("")){
-            List <LatLng > userLocation = db.passLatLngDate(selected);
+            List <LocationStruct> userLocation = db.passLatLngDate(selected);
             ((MainActivity)getActivity()).setUserLocations(userLocation);
         }
         ((MainActivity)getActivity()).hidePathList(); //pass date to main activity

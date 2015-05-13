@@ -6,6 +6,7 @@ package com.example.ugri.pathogion;
 
 import android.app.Fragment;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -14,9 +15,12 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -24,6 +28,8 @@ public class Map extends Fragment implements
         OnMapReadyCallback {
 
     GoogleMap map;
+
+    static int ESTIMATED_DISTANCE = 20;
 
     Log log;
 //    static final String dateFormat = "yyyy-MM-dd HH:mm:ss";
@@ -57,35 +63,112 @@ public class Map extends Fragment implements
 
 
     //map both userLoc(black) and patientLoc(red) on the map.
-    public void mapUserLocation (List<LatLng> userLoc, List<LatLng> patientLoc){
+    public void mapLocations (List<LocationStruct> userLoc, List<LocationStruct> patientLoc){
         if (userLoc.size()>0){
             log.i("map", "map userLocation " + String.valueOf(userLoc.size()));
             int size = userLoc.size();
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(userLoc.get(size - 1), (float) 10.0));
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(userLoc.get(size - 1).coor, (float) 12.0));
 
-            //add polyline
-            Polyline polylineUser = map.addPolyline(new PolylineOptions().geodesic(true));
-            polylineUser.setColor(Color.BLACK);
-            polylineUser.setWidth(20);
-
-            polylineUser.setPoints(userLoc);
-
+            mapUserLocation(userLoc);
         }
 
         if (patientLoc.size()>0){
-            log.i("map", "map patient location");
+            log.i("map", "map patient location" + String.valueOf(patientLoc.size()));
             int size = patientLoc.size();
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(patientLoc.get(size - 1), (float) 10.0));
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(patientLoc.get(size - 1).coor, (float) 12.0));
 
-            //add polyline
-            Polyline polylinePatient = map.addPolyline(new PolylineOptions().geodesic(true));
-            polylinePatient.setColor(Color.RED);
-            polylinePatient.setWidth(20);
+            mapPatientLocation(patientLoc);
 
-            polylinePatient.setPoints(patientLoc);
         }
 
     }
 
+    //it is mapping user's locations
+    public void mapUserLocation (List<LocationStruct> ls){
+        List <LatLng> loc = new ArrayList<>();
 
+        LatLng temp = ls.get(0).coor;
+        Distance preD = new Distance(temp);
+        Distance curD = new Distance();
+        loc.add(temp);
+
+        int loop = 1;
+        while (loop < ls.size()){
+            temp = ls.get(loop).coor;
+            loc.add(temp);
+            curD.setLoc(temp);
+            if (preD.findDistance(curD) > ESTIMATED_DISTANCE && loc.size()>1){
+                //add polyline
+                Polyline pol = map.addPolyline(new PolylineOptions().geodesic(true));
+                pol.setColor(Color.BLACK);
+                pol.setWidth(20);
+                pol.setPoints(loc);
+
+                loc.clear();
+                loc.add(temp);
+
+                log.i("map","mapuserloc");
+
+                //start finding the estimated distance, make it grey
+                while (loop < ls.size()){
+                    preD.setDistance(curD);
+                    temp = ls.get(loop).coor;
+                    loc.add(temp);
+                    curD.setLoc(temp);
+                    if (preD.findDistance(curD)< ESTIMATED_DISTANCE && loc.size() >1){
+                        Polyline pol2 = map.addPolyline(new PolylineOptions().geodesic(true));
+                        pol2.setColor(Color.GRAY);
+                        pol2.setWidth(20);
+
+                        pol2.setPoints(loc);
+                        loc.clear();
+                        loc.add(temp);
+
+                        log.i("map","mapuserloc 2");
+
+                        break;
+
+                    }
+
+                    loop ++;
+                }
+            }
+            loop ++;
+        }
+
+        if (loc.size() > 1){
+            Polyline pol3 = map.addPolyline(new PolylineOptions().geodesic(true));
+            pol3.setColor(Color.GRAY);
+            pol3.setWidth(20);
+
+            pol3.setPoints(loc);
+        }
+    }
+
+    public void mapPatientLocation (List<LocationStruct> ls){
+        List <LatLng> loc = new ArrayList<>();
+        log.i("map", "size of ls " + String.valueOf(ls.size()));
+        int loop = 0;
+        while (loop < ls.size()){
+            LatLng temp;
+            temp = ls.get(loop).coor;
+            loc.add(temp);
+            map.addMarker(new MarkerOptions()
+                        .position(temp)
+                        .title("P"));
+
+            loop++;
+        }
+        Polyline polyPatient = map.addPolyline(new PolylineOptions().geodesic(true));
+        polyPatient.setColor(Color.RED);
+        polyPatient.setWidth(20);
+
+        polyPatient.setPoints(loc);
+    }
+
+    public void clearAllMappings(){
+        map.clear();
+    }
 }
+
+

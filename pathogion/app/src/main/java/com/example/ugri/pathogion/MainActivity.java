@@ -7,6 +7,7 @@ package com.example.ugri.pathogion;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -30,9 +31,10 @@ public class MainActivity extends FragmentActivity {
     ShowPath showPath = new ShowPath(); //fragment for user's tracks
     PatientTrack pTrack = new PatientTrack();   //fragment for patient's tracks
 
-    List<LatLng> userLocations = new ArrayList();   //array with user's locations
-    List<LatLng> patientLocations = new ArrayList<>(); //array with matched patient's locations.
+    List<LocationStruct> userLocations = new ArrayList();   //array with user's locations
+    List<LocationStruct> patientLocations = new ArrayList<>(); //array with matched patient's locations.
     String selectedDate = "";   //selected Date to compare
+    Bundle savedInstance;
 
     Log log; // for logcat
 
@@ -41,10 +43,13 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //add fragment to the activity one by one. The order is important
-        fragmentManager.beginTransaction()
-                .add (userLoc, "Location Update")
-                .commit();
+        savedInstance = savedInstanceState;
+        if (savedInstanceState == null) {
+            //add fragment to the activity one by one. The order is important
+            fragmentManager.beginTransaction()
+                    .add(userLoc, "Location Update")
+                    .commit();
+        }
 
         fragmentManager.beginTransaction()
                 .add(R.id.fragment_container, map, "map")
@@ -134,7 +139,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     //set patientLocations array
-    public void setPatientLocations(List <LatLng> pLocs){
+    public void setPatientLocations(List <LocationStruct> pLocs){
         patientLocations = pLocs;
         log.i("main size of pTracks", String.valueOf(patientLocations.size()));
         if (patientLocations.size()>1)
@@ -142,22 +147,27 @@ public class MainActivity extends FragmentActivity {
     }
 
     //set userLocations array
-    public void setUserLocations(List<LatLng> userLocs){
+    public void setUserLocations(List<LocationStruct> userLocs){
         log.i("main", "getUserLocations");
         userLocations = userLocs;
     }
 
     //return userlocations array
-    public List<LatLng> getUserLocations(){
+    public List<LocationStruct> getUserLocations(){
         return userLocations;
+    }
+
+    public void clearMapping(){
+        Map fragment = (Map) fragmentManager.findFragmentByTag("map");
+            fragment.clearAllMappings();
     }
 
     //mapping user's and patient's locations on the map fragment
     public void showPathsOnMap(){
         hideSideMenu();
         Map fragment = (Map) fragmentManager.findFragmentByTag("map");
-        if (userLocations.size()!=0 || patientLocations.size()!=0)
-            fragment.mapUserLocation(userLocations, patientLocations);
+        if (userLocations.size()!=0 && patientLocations.size()!=0)
+            fragment.mapLocations(userLocations, patientLocations);
 
     }
 
@@ -172,6 +182,32 @@ public class MainActivity extends FragmentActivity {
                 .commit();
     }
 
+    @Override
+    public void onRestart(){
+        super.onRestart();
+        if (savedInstance != null){
+            fragmentManager.beginTransaction()
+                    .add(R.id.fragment_container, map, "map")
+                    .show(map)
+                    .commit();
+
+            fragmentManager.beginTransaction()
+                    .add(R.id.fragment_container, sideMenu, "side Menu")
+                    .hide(sideMenu)
+                    .commit();
+
+            fragmentManager.beginTransaction()
+                    .add(R.id.fragment_container, showPath, "show user path")
+                    .hide(showPath)
+                    .commit();
+
+            fragmentManager.beginTransaction()
+                    .add(R.id.fragment_container, pTrack, "patient track")
+                    .hide(pTrack)
+                    .commit();
+
+        }
+    }
 
 }
 

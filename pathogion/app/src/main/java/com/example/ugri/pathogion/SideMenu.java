@@ -19,7 +19,7 @@ import android.widget.TextView;
 
 public class SideMenu extends ListFragment {
 
-    String[]options = {"Show Path Date", "Mapping","Delete Database","Return"};
+    String[]options = {"Show Path Date", "Mapping","Delete Database","Clear Map","Return"};
 
     Log log;
 
@@ -58,9 +58,11 @@ public class SideMenu extends ListFragment {
             case 1:
                 showOnMap();
             case 2:
+                clearMap();
+            case 3:
             //    clearDb();
                 break;
-            case 3:
+            case 4:
                 goBack();
                 break;
         }
@@ -81,6 +83,10 @@ public class SideMenu extends ListFragment {
     //call main activity's showPathosOnMap function for "mapping"
     public void showOnMap(){
         ((MainActivity)getActivity()).showPathsOnMap();
+    }
+
+    public void clearMap(){
+        ((MainActivity)getActivity()).clearMapping();
     }
 
     //a button

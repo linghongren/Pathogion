@@ -13,14 +13,9 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
-
 
 
 public class Database extends SQLiteOpenHelper {
@@ -29,11 +24,9 @@ public class Database extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "userLocationsData";
 
+
     SQLiteDatabase db;
     Cursor cursor;
-
-    String dateFormat = "yyyy-MM-dd";
-    SimpleDateFormat formatDate = new SimpleDateFormat(dateFormat);
 
     private static final String TABLE_NAME = "Location";
 
@@ -137,47 +130,35 @@ public class Database extends SQLiteOpenHelper {
     }
 
 
-    //passing a list of latlng on a given date
-    public List<LatLng> passLatLngDate (String dt){
+    //passing a list of locationStruct on a given date
+    public List<LocationStruct> passLatLngDate (String dt){
 
         log.i("database", "passLatLngDate");
-        List <LatLng> dLoc = new ArrayList<>();
+        List <LocationStruct> dLoc = new ArrayList<>();
 
-        Date dDt;
-
-        Calendar cal1 = Calendar.getInstance();
-        Calendar cal2 = Calendar.getInstance();
-
-        //convert string to date, because date objects can be compared using Calendar objects.
-        try{
-            dDt = formatDate.parse(dt);
-            cal1.setTime( dDt );
-        }catch(ParseException e) {
-            e.printStackTrace();
-        }
+        Time wantedDate = new Time (dt, 1);
 
         if (initializeForDataQuery()){
             while (afterOneDataQuery()){
                 long temp = passTime();
 //                log.i ("database", String.valueOf(temp));
-                cal2.setTimeInMillis(temp);
+                Time dataDate = new Time (temp);
                //add new date to the list
-                if ((cal1.get(Calendar.YEAR))==(cal2.get(Calendar.YEAR)) &&
-                            (cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR))){
-
+                if (dataDate.onSameDay(wantedDate.getTimeC())){
                     //if a location is on the date we are looking for, save it
-                    dLoc.add(passLatLng());
-                    log.i("database", String.valueOf(dLoc.size()));
+                    LocationStruct local = new LocationStruct();
+                    local.time = new Date(temp);
+                    local.coor = passLatLng();
+                    dLoc.add(local);
+//                    log.i("database", String.valueOf(dLoc.size()));
                 }
 
-                //if cal2 is a day after cal1, there is no need to compare.
-                if ((cal1.get(Calendar.YEAR))>cal2.get(Calendar.YEAR) &&
-                        cal1.get(Calendar.DAY_OF_YEAR) > cal2.get(Calendar.DAY_OF_YEAR))
+                //if the date in the database is after the wantedDate, there is no need to compare.
+                if (dataDate.dayAfter(wantedDate.getTimeC()))
                     break;
             }
 
         }
-
         return dLoc;
     }
 
@@ -186,36 +167,28 @@ public class Database extends SQLiteOpenHelper {
     public List<String> existingDates (){
         List<String> date = new ArrayList<>();
 
-        Calendar cal1 = Calendar.getInstance();
-        Calendar cal2 = Calendar.getInstance();
-
+        Time time1 = new Time();
+        Time time2 = new Time();
 
         if (initializeForDataQuery()){
             while (afterOneDataQuery()){
                 long temp = passTime();
-//                log.i ("database", String.valueOf(temp));
-                cal1.setTimeInMillis(temp);
+ //               log.i ("database", String.valueOf(temp));
+                time1.setTime(temp);
                 //add new date to the list
                 if (!date.isEmpty()){
-                    if (! ((cal1.get(Calendar.YEAR))==(cal2.get(Calendar.YEAR)) &&
-                            (cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)))){
-
+                    if (! time1.onSameDay(time2.getTimeC())){
                         //check the year, and day of year.
                         //if it is a different date, save it.
-                        Date dt = new Date();
-                        dt.setTime(temp);
-                        date.add(formatDate.format(dt));
-                        cal2.setTimeInMillis(temp);
+                        date.add(time1.getTimeS());
+                        time2.setTime(temp);
                     }
 
                 }
                 else{ //add the first date to the list
-                    Date dt = new Date();
-                    dt.setTime(temp);
-                    date.add(formatDate.format(dt));
-                    cal2.setTimeInMillis(temp);
+                    time2.setTime(temp);
+                    date.add(time2.getTimeS());
                 }
-
 
             }
         }

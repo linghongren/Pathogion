@@ -17,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.File;
@@ -25,31 +26,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 
 public class PatientTrack extends ListFragment {
 
+    static final int MINIMAL_DISTANCE = 5;
+
     Log log;
     File file;
     InputStream inputStream;
-    List <LatLng> userLocations = new ArrayList();  //user's locations
-    List <LatLng> tracks = new ArrayList<>();       //patient's locations
+    List <LocationStruct> userLocations = new ArrayList();  //user's locations
+    List <LocationStruct> tracks = new ArrayList<>();       //patient's locations
     List <String> listItem = new ArrayList<>();     //List item on the fragment
 
     boolean isNeeded = false;
-
-    String dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"; // the format of time in the Geojson file
-    SimpleDateFormat formatDate = new SimpleDateFormat(dateFormat, Locale.ENGLISH);
-
-    String dateFormatDatabase = "yyyy-MM-dd";   //the format of time in the user's locations
-    SimpleDateFormat formatDateDatabase = new SimpleDateFormat(dateFormatDatabase);
-
 
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -113,9 +106,9 @@ public class PatientTrack extends ListFragment {
                 //read through the geojson file
                 tracks = readJsonStream(inputStream, wantedTime);
                 //filter again
-                if (!compareUserAndPatientLocation()){
-                    tracks.clear();
-                }
+ //               if (!compareUserAndPatientLocation()){
+ //                   tracks.clear();
+ //               }
 
             } catch (IOException e) {
                 log.i("patientTrack", "on Create error");
@@ -125,7 +118,7 @@ public class PatientTrack extends ListFragment {
     }
 
     //parsing the geojson file
-    public List <LatLng> readJsonStream(InputStream in, String wantedTime) throws IOException {
+    public List <LocationStruct> readJsonStream(InputStream in, String wantedTime) throws IOException {
         JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
         try {
             log.i("patientTrack", "readJsonStream");
@@ -138,10 +131,10 @@ public class PatientTrack extends ListFragment {
 
     //get all latitude and longitude on wantedTime in reader
     //read all features
-    public List <LatLng> readMessagesArray(JsonReader reader, String wantedTime) throws IOException {
-        List <LatLng> coor = new ArrayList();
+    public List <LocationStruct> readMessagesArray(JsonReader reader, String wantedTime) throws IOException {
+        List <LocationStruct> coor = new ArrayList();
 
-        LatLng temp;
+        LocationStruct temp;
 
         //parse the beginning of the file
         reader.beginObject();
@@ -153,7 +146,7 @@ public class PatientTrack extends ListFragment {
                 //start parsing features
                 while (reader.hasNext()){
                     temp = readFeatures(reader, wantedTime); //get coordinate
-                    if (isNeeded)   //a variable that shows whether a coordinate is on the given date
+//                    if (isNeeded)   //a variable that shows whether a coordinate is on the given date
                         coor.add(temp);
                 }
                 reader.endArray();
@@ -169,43 +162,32 @@ public class PatientTrack extends ListFragment {
 
     //read features in reader
     //set isNeeded to true if this coordinate is on the wantTime
-    public LatLng readFeatures (JsonReader reader, String wantTime) throws IOException{
-        LatLng features = new LatLng(0, 0);
-        String timestamp = "";
-        Date wantTimeD = new Date(); // the time of the location we look for
-        Date timeD = new Date();  // the time that patient file has
+    public LocationStruct readFeatures (JsonReader reader, String wantTime) throws IOException{
+        LocationStruct features = new LocationStruct();
 
         reader.beginObject();
         while (reader.hasNext()){
             String name = reader.nextName();
-            if (name.equals("properties"))
-                timestamp = readTimestamp(reader);  //get time
+            if (name.equals("properties")){
+                Time temp =new Time (readTimestamp(reader), 0);  //get time
+                features.time =temp.getTimeD();
+            }
             else if (name.equals("geometry"))
-                features = readCoordinates(reader); //get coordinates
+                features.coor = readCoordinates(reader); //get coordinates
             else
                 reader.skipValue();
         }
 
         reader.endObject();
 
-        //change the format of the time
-        try {
-            timeD = formatDate.parse(timestamp);
-            wantTimeD = formatDateDatabase.parse (wantTime);
-        }catch (ParseException e){
-            e.printStackTrace();
-        }
+        Time time1 = new Time(wantTime, 1);
+        Time time2 = new Time(features.time);
 
-        Calendar cal1 = Calendar.getInstance();
-        Calendar cal2 = Calendar.getInstance();
-        cal1.setTime(wantTimeD);
-        cal2.setTime(timeD);
 
         //compare if two dates are the same
         //if yes, set isNeeded to true;
         //if not, set isNeeded to false;
-        if ((cal1.get(Calendar.YEAR))==(cal2.get(Calendar.YEAR)) &&
-                (cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)))
+        if (time1.onSameDay(time2.getTimeC()))
             isNeeded = true;
 
         else
@@ -244,8 +226,8 @@ public class PatientTrack extends ListFragment {
             String name = reader.nextName();
             if (name.equals("coordinates")){
                 reader.beginArray();
-                lat = reader.nextDouble();
-                longi= reader.nextDouble();
+                longi = reader.nextDouble();
+                lat= reader.nextDouble();
                 reader.endArray();
             }
             else
@@ -263,21 +245,25 @@ public class PatientTrack extends ListFragment {
     // If any of the two locations is less than 10 miles away, return true; otherwise, false
     public boolean compareUserAndPatientLocation(){
         setUserLocations();     //get user's locations
-        Location userLoc = new Location("Me");
-        Location pLoc = new Location("Me");
+
         boolean match = false;
+
         for (int i = 0; i < userLocations.size(); i ++){
-            userLoc.setLatitude(userLocations.get(i).latitude);
-            userLoc.setLongitude(userLocations.get(i).longitude);
+
+            Distance userD = new Distance(userLocations.get(i).coor);
+            Time timeUser = new Time(userLocations.get(i).time);
+
             for (int j =0; j < tracks.size(); j++){
-                pLoc.setLatitude(tracks.get(j).latitude);
-                pLoc.setLongitude(tracks.get(j).longitude);
 
-                if (userLoc.distanceTo(pLoc) < 10){
-                    match = true;
-                    break;
+                Distance userP = new Distance (tracks.get(j).coor);
+                Time timepatient = new Time(userLocations.get(j).time);
+
+                //locations are close and time are close
+                if ((userD.findDistance(userP) < MINIMAL_DISTANCE )
+                        && (timeUser.closeOnTime(timepatient.getTimeC()))){
+                        match = true;
+                        break;
                 }
-
             }
 
             if (match)
