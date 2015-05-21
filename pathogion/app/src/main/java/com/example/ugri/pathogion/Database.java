@@ -9,10 +9,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,6 +26,7 @@ public class Database extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "userLocationsData";
 
+    List<LocationStruct> dloc = new ArrayList<>();
 
     SQLiteDatabase db;
     Cursor cursor;
@@ -131,37 +134,41 @@ public class Database extends SQLiteOpenHelper {
 
 
     //passing a list of locationStruct on a given date
-    public List<LocationStruct> passLatLngDate (String dt){
+    public List<LocationStruct> passLatLngDate (){
+        log.i("database", "passLatLngDate " + String.valueOf(dloc.size()));
+        return dloc;
+    }
 
-        log.i("database", "passLatLngDate");
-        List <LocationStruct> dLoc = new ArrayList<>();
+    public void getLatLngGivenDate (String dt) {
 
-        Time wantedDate = new Time (dt, 1);
+        log.i("database", "passLatLng");
 
-        if (initializeForDataQuery()){
-            while (afterOneDataQuery()){
+        Time wantedDate = new Time(dt, 1);
+
+        if (initializeForDataQuery()) {
+            while (afterOneDataQuery()) {
                 long temp = passTime();
 //                log.i ("database", String.valueOf(temp));
-                Time dataDate = new Time (temp);
-               //add new date to the list
-                if (dataDate.onSameDay(wantedDate.getTimeC())){
+                Time dataDate = new Time(temp);
+                //add new date to the list
+                if (dataDate.onSameDay(wantedDate.getTimeC())) {
                     //if a location is on the date we are looking for, save it
                     LocationStruct local = new LocationStruct();
                     local.time = new Date(temp);
                     local.coor = passLatLng();
-                    dLoc.add(local);
-//                    log.i("database", String.valueOf(dLoc.size()));
+                    dloc.add(local);
+//                    log.i("database", String.valueOf(dloc.size()));
                 }
 
                 //if the date in the database is after the wantedDate, there is no need to compare.
-                if (dataDate.dayAfter(wantedDate.getTimeC()))
-                    break;
+//                if (dataDate.dayAfter(wantedDate.getTimeC()))
+//                    break;
             }
 
         }
-        return dLoc;
-    }
 
+        db.close();
+    }
 
     //return a list with all the dates in the database
     public List<String> existingDates (){
@@ -194,6 +201,17 @@ public class Database extends SQLiteOpenHelper {
         }
 
         return date;
+    }
+
+    public void insertSampleData(){
+        insertData(40.713744,-73.996406, (float) 0, 1426095200000L);
+        insertData(40.713770,-73.993279, (float) 0, 1426095300000L);
+        insertData(40.713770,-73.993279, (float) 0, 1426095430000L);
+        insertData(40.714297,-73.992491, (float) 0, 1426095600000L);
+        insertData(40.714427,-73.991225, (float) 0, 1426095716000L);
+        insertData(40.713988,-73.990431, (float) 0, 1426096101000L);
+        insertData(40.716070,-73.989315, (float) 0, 1426096225000L);
+        insertData(40.719453,-73.987706, (float) 0, 1426096342000L);
     }
 
 }

@@ -57,12 +57,11 @@ public class SideMenu extends ListFragment {
                 break;
             case 1:
                 showOnMap();
+
             case 2:
-                clearMap();
-            case 3:
-            //    clearDb();
+//                clearDb();
                 break;
-            case 4:
+            case 3:
                 goBack();
                 break;
         }
@@ -85,13 +84,11 @@ public class SideMenu extends ListFragment {
         ((MainActivity)getActivity()).showPathsOnMap();
     }
 
-    public void clearMap(){
-        ((MainActivity)getActivity()).clearMapping();
-    }
-
-    //a button
+/*    //a button
     public void clearDb(){
         log.i(" clearDb", "clear");
         getActivity().deleteDatabase("userLocationsData");
-    }
+        Database db = new Database(getActivity().getApplicationContext());
+        db.insertSampleData();
+    }*/
 }

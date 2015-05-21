@@ -61,15 +61,10 @@ public class ShowPath extends ListFragment {
     @Override
     public void onListItemClick(ListView l, View v, int position, long id){
         log.i("showpath", String.valueOf(position));
-        if (position == pathDate.size()-1){
-            goBack();
-        }
-        else{
             //when an date is selected, pass the date to fragmentActivity
-            selected = pathDate.get(position);
-            ((MainActivity)getActivity()).setSelectedDate(selected);
-            showPTrack();
-        }
+        selected = pathDate.get(position);
+        ((MainActivity)getActivity()).setSelectedDate(selected);
+        showPTrack();
 
     }
 
@@ -77,21 +72,16 @@ public class ShowPath extends ListFragment {
     public void getAvailableDate (){
         log.i("showpath", "get date");
         pathDate = db.existingDates();
-        pathDate.add("OK"); // the last item in the list
         log.i("showpath", "get date finish");
     }
 
 
     //pass the selected date to fragmentActivity
-    //calling main activity's hidePathList function.
+/*    //calling main activity's hidePathList function.
     public void goBack(){
-        if (! selected.equals("")){
-            List <LocationStruct> userLocation = db.passLatLngDate(selected);
-            ((MainActivity)getActivity()).setUserLocations(userLocation);
-        }
         ((MainActivity)getActivity()).hidePathList(); //pass date to main activity
     }
-
+*/
     //Call fragmentActivity's showPTrack()
     public void showPTrack(){
         ((MainActivity)getActivity()).showPTrack();

@@ -8,6 +8,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -35,6 +36,8 @@ public class MainActivity extends FragmentActivity {
     List<LocationStruct> patientLocations = new ArrayList<>(); //array with matched patient's locations.
     String selectedDate = "";   //selected Date to compare
     Bundle savedInstance;
+
+    Database db;
 
     Log log; // for logcat
 
@@ -101,7 +104,7 @@ public class MainActivity extends FragmentActivity {
                 .commit();
     }
 
-    //hide ShowPath fragment
+/*    //hide ShowPath fragment
     public void hidePathList(){
         log.i ("main", "hide");
 
@@ -110,10 +113,15 @@ public class MainActivity extends FragmentActivity {
                 .hide(showPath)
                 .commit();
     }
-
+*/
     //set selectedDate
-    public void setSelectedDate(String sd){
+    public void setSelectedDate(String sd) {
         selectedDate = sd;
+        log.i("main", "selected " + selectedDate);
+        if (selectedDate != "") {
+            new GetUserLocationOneDay().execute(selectedDate);
+            log.i("main", "asynctask " + String.valueOf(userLocations.size()));
+        }
     }
 
     // Pass a selectedDate to PatientTrack fragment to find a matching
@@ -135,6 +143,7 @@ public class MainActivity extends FragmentActivity {
         fragmentManager.beginTransaction()
                 .setCustomAnimations(0, R.anim.slide_out_left)
                 .hide(pTrack)
+                .hide(showPath)
                 .commit();
     }
 
@@ -147,9 +156,9 @@ public class MainActivity extends FragmentActivity {
     }
 
     //set userLocations array
-    public void setUserLocations(List<LocationStruct> userLocs){
+    public void setUserLocations(List<LocationStruct> ls){
         log.i("main", "getUserLocations");
-        userLocations = userLocs;
+        userLocations = ls;
     }
 
     //return userlocations array
@@ -157,18 +166,14 @@ public class MainActivity extends FragmentActivity {
         return userLocations;
     }
 
-    public void clearMapping(){
-        Map fragment = (Map) fragmentManager.findFragmentByTag("map");
-            fragment.clearAllMappings();
-    }
-
     //mapping user's and patient's locations on the map fragment
     public void showPathsOnMap(){
         hideSideMenu();
-        Map fragment = (Map) fragmentManager.findFragmentByTag("map");
-        if (userLocations.size()!=0 && patientLocations.size()!=0)
-            fragment.mapLocations(userLocations, patientLocations);
+        Map fragmentM = (Map) fragmentManager.findFragmentByTag("map");
+        log.i("main", "userloc size " + String.valueOf(userLocations.size())+
+                "patientloc size "+ String.valueOf(patientLocations.size()));
 
+        fragmentM.copyLocations(userLocations, patientLocations);
     }
 
     @Override
@@ -206,6 +211,24 @@ public class MainActivity extends FragmentActivity {
                     .hide(pTrack)
                     .commit();
 
+        }
+    }
+
+    private class GetUserLocationOneDay extends AsyncTask<String, Void, Long>{
+        Database db = new Database(getApplicationContext());
+
+        protected Long doInBackground(String... params){
+            long result = 0;
+            log.i("main", "async task "+ params[0]);
+            db.getLatLngGivenDate(params[0]);
+            return result;
+        }
+
+        protected void onPostExecute(Long result) {
+            if (result == 0) {
+                setUserLocations(db.passLatLngDate());
+                log.i("main", "asynctask done " + String.valueOf(userLocations.size()));
+            }
         }
     }
 

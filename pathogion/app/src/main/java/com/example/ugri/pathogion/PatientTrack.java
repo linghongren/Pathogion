@@ -5,7 +5,7 @@ package com.example.ugri.pathogion;
  */
 
 import android.app.ListFragment;
-import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.JsonReader;
@@ -17,7 +17,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.File;
@@ -25,15 +24,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 
 public class PatientTrack extends ListFragment {
-
-    static final int MINIMAL_DISTANCE = 5;
 
     Log log;
     File file;
@@ -42,6 +37,7 @@ public class PatientTrack extends ListFragment {
     List <LocationStruct> tracks = new ArrayList<>();       //patient's locations
     List <String> listItem = new ArrayList<>();     //List item on the fragment
 
+    getPatientLocation asyncTask;
     boolean isNeeded = false;
 
     @Override
@@ -80,7 +76,6 @@ public class PatientTrack extends ListFragment {
         //should be changed when there are more than one patient with names
         listItem.add("One patient");
 
-        listItem.add("Back");
         setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, listItem));
 
     }
@@ -89,9 +84,6 @@ public class PatientTrack extends ListFragment {
     public void onListItemClick(ListView l, View v, int position, long id){
         log.i("showpath", String.valueOf(position));
 
-        if (position == listItem.size()-1){
-            goBack();
-        }
         //add more when there are more than one patients
     }
 
@@ -100,20 +92,8 @@ public class PatientTrack extends ListFragment {
         String wantedTime = selectedDate;
         log.i("patientTrack getTime", wantedTime);
         if (! wantedTime.equals("") ){
-            try {
-                inputStream = new FileInputStream(file);
-                log.i("patientTrack", "onCreate 2");
-                //read through the geojson file
-                tracks = readJsonStream(inputStream, wantedTime);
-                //filter again
- //               if (!compareUserAndPatientLocation()){
- //                   tracks.clear();
- //               }
-
-            } catch (IOException e) {
-                log.i("patientTrack", "on Create error");
-
-            }
+            asyncTask = new getPatientLocation();
+            asyncTask.execute(wantedTime);
         }
     }
 
@@ -146,7 +126,7 @@ public class PatientTrack extends ListFragment {
                 //start parsing features
                 while (reader.hasNext()){
                     temp = readFeatures(reader, wantedTime); //get coordinate
-//                    if (isNeeded)   //a variable that shows whether a coordinate is on the given date
+                    if (isNeeded)   //a variable that shows whether a coordinate is on the given date
                         coor.add(temp);
                 }
                 reader.endArray();
@@ -171,6 +151,7 @@ public class PatientTrack extends ListFragment {
             if (name.equals("properties")){
                 Time temp =new Time (readTimestamp(reader), 0);  //get time
                 features.time =temp.getTimeD();
+
             }
             else if (name.equals("geometry"))
                 features.coor = readCoordinates(reader); //get coordinates
@@ -241,38 +222,6 @@ public class PatientTrack extends ListFragment {
 
     }
 
-    //compare user's locations with Patient's Location.
-    // If any of the two locations is less than 10 miles away, return true; otherwise, false
-    public boolean compareUserAndPatientLocation(){
-        setUserLocations();     //get user's locations
-
-        boolean match = false;
-
-        for (int i = 0; i < userLocations.size(); i ++){
-
-            Distance userD = new Distance(userLocations.get(i).coor);
-            Time timeUser = new Time(userLocations.get(i).time);
-
-            for (int j =0; j < tracks.size(); j++){
-
-                Distance userP = new Distance (tracks.get(j).coor);
-                Time timepatient = new Time(userLocations.get(j).time);
-
-                //locations are close and time are close
-                if ((userD.findDistance(userP) < MINIMAL_DISTANCE )
-                        && (timeUser.closeOnTime(timepatient.getTimeC()))){
-                        match = true;
-                        break;
-                }
-            }
-
-            if (match)
-                break;
-        }
-
-        return match;
-    }
-
     //get userLocations from fragmentActivity
     public void setUserLocations(){
         userLocations = ((MainActivity)getActivity()).getUserLocations();
@@ -281,8 +230,37 @@ public class PatientTrack extends ListFragment {
     //pass the patient's locations to fragmentActivity
     //Call FragmentActivity's hidePTrack();
     public void goBack(){
-        ((MainActivity)getActivity()).setPatientLocations(tracks);
         ((MainActivity)getActivity()).hidePTrack();
+
     }
+
+    //asynctask to read geojson file
+    public class getPatientLocation extends AsyncTask<String, Void, Void> {
+
+        protected Void doInBackground(String... params){
+
+            try {
+                inputStream = new FileInputStream(file);
+                log.i("patientTrack", "onCreate 2");
+                //read through the geojson file
+                tracks.clear();
+                tracks = readJsonStream(inputStream, params[0]);
+                //filter again
+
+            } catch (IOException e) {
+                log.i("patientTrack", "on Create error");
+
+            }
+            return null;
+        }
+        protected void onPostExecute (Void result){
+            ((MainActivity)getActivity()).setPatientLocations(tracks);
+            log.i ("ptrack", "finish reading " + String.valueOf(tracks.size()));
+            goBack();
+        }
+
+    }
+
+
 
 }

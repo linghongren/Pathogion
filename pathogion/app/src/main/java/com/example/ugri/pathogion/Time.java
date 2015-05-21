@@ -88,6 +88,15 @@ public class Time {
         return ((timeC.get(Calendar.HOUR_OF_DAY))==(cal.get(Calendar.HOUR_OF_DAY)) && isFiveMin);
     }
 
+    boolean timeAfter (Calendar cal){
+        return (timeC.after(cal) && (!closeOnTime(cal)));
+    }
+
+    boolean timeBetween (Calendar cal1, Calendar cal2){
+        return ((timeC.after(cal1) && timeC.before(cal2))
+                || timeC.after(cal2) && timeC.before(cal1));
+    }
+
     boolean dayAfter (Calendar cal){
         boolean isAfter = false;
         if (timeC.get(Calendar.YEAR)>cal.get(Calendar.YEAR))
@@ -125,6 +134,12 @@ class Distance{
     void setLoc(LatLng coor){
         loc.setLatitude(coor.latitude);
         loc.setLongitude(coor.longitude);
+    }
+
+    LatLng getLatLng(){
+        LatLng llg = new LatLng(loc.getLatitude(),loc.getLongitude());
+
+        return llg;
     }
 
     Location getLoc (){
