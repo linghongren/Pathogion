@@ -58,7 +58,7 @@ public class Database extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         db.execSQL(CREATE_TABLE);
-//        log.i("database", "oncreate");
+        log.i("database", "oncreate");
     }
 
     //insert data into the database with four values

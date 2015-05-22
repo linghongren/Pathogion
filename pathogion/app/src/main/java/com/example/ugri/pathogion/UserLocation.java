@@ -46,6 +46,8 @@ public class UserLocation extends Fragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        log.i("userLocation", "oncreate");
+
         db = new Database(getActivity());
         //for location updates
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
@@ -167,6 +169,12 @@ public class UserLocation extends Fragment implements
                 }
             }
         }
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        log.i("userLocation", "ondestroy");
     }
 
 }

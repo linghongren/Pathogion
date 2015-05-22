@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -55,12 +56,11 @@ public class Map extends Fragment implements
         super.onCreate(savedInstanceState);
         //code map to the app
 
-        log.i("map", "map oncreate");
+        log.i("map", "oncreate");
         MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
 
         mapFragment.getMapAsync(this);
-
     }
 
 

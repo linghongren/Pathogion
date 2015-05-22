@@ -33,6 +33,8 @@ public class ShowPath extends ListFragment {
         super.onCreate(savedInstanceState);
         db = new Database(getActivity());
 
+        log.i("showPath", "oncreate");
+
     }
 
     @Override
@@ -40,7 +42,7 @@ public class ShowPath extends ListFragment {
         super.onCreateView(inflater,container,savedInstanceState);
 
         log.i("showPath", "created");
-        View view = inflater.inflate(R.layout.show_path, container,false);
+        View view = inflater.inflate(R.layout.side_menu, container,false);
 
         //set title
         TextView textView = (TextView)view.findViewById(R.id.title);

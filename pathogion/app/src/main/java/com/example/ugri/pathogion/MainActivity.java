@@ -52,68 +52,69 @@ public class MainActivity extends FragmentActivity {
             fragmentManager.beginTransaction()
                     .add(userLoc, "Location Update")
                     .commit();
+
+            fragmentManager.beginTransaction()
+                    .add(R.id.fragment_container, map, "map")
+                    .commit();
         }
-
-        fragmentManager.beginTransaction()
-                .add(R.id.fragment_container, map, "map")
-                .show(map)
-                .commit();
-
-        fragmentManager.beginTransaction()
-                .add(R.id.fragment_container, sideMenu, "side Menu")
-                .hide(sideMenu)
-                .commit();
-
-        fragmentManager.beginTransaction()
-                .add(R.id.fragment_container, showPath, "show user path")
-                .hide(showPath)
-                .commit();
-
-        fragmentManager.beginTransaction()
-                .add(R.id.fragment_container, pTrack, "patient track")
-                .hide(pTrack)
-                .commit();
-
     }
 
 
     //show SideMenu fragment
     public void callSideMenu(View view){
         log.i("main", "show side menu");
-        fragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.slide_in_right, 0)
-                .show(sideMenu)
-                .commit();
-    }
 
-    //hide SideMenu fragment
-    public void hideSideMenu(){
-        log.i ("main", "hide side menu");
-        fragmentManager.beginTransaction()
-                .setCustomAnimations(0, R.anim.slide_out_left)
-                .hide(sideMenu)
-                .commit();
+        if (fragmentManager.findFragmentByTag("side menu") == null) {
+            fragmentManager.beginTransaction()
+                    .setCustomAnimations(R.anim.slide_in_right, 0)
+                    .add(R.id.fragment_container, sideMenu, "side menu")
+                    .commit();
+        }
+        else {
+            if (fragmentManager.findFragmentByTag("show path")!=null){
+                fragmentManager.beginTransaction()
+                        .remove(showPath)
+                        .commit();
+            }
+
+        }
     }
 
     //show ShowPath fragment
     public void showPath(){
         log.i("main","show path");
+
         fragmentManager.beginTransaction()
                 .setCustomAnimations(R.anim.slide_in_right, 0)
-                .show(showPath)
+                .replace(R.id.fragment_container, showPath, "show path")
                 .commit();
     }
 
-/*    //hide ShowPath fragment
-    public void hidePathList(){
-        log.i ("main", "hide");
-
+    // Pass a selectedDate to PatientTrack fragment to find a matching
+    // Then show PatientTrack fragment
+    public void showPTrack (){
+        log.i("main", "pTrack");
         fragmentManager.beginTransaction()
-                .setCustomAnimations(0, R.anim.slide_out_left)
-                .hide(showPath)
+                .add(pTrack, "patient track")
                 .commit();
+
+        pTrack.patientLookUp(selectedDate);
     }
-*/
+
+    //mapping user's and patient's locations on the map fragment
+    public void showPathsOnMap(){
+        fragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.slide_out_left, 0)
+                .detach(showPath)
+                .commit();
+
+        Map fragmentM = (Map) fragmentManager.findFragmentByTag("map");
+        log.i("main", "userloc size " + String.valueOf(userLocations.size())+
+                "patientloc size "+ String.valueOf(patientLocations.size()));
+
+        fragmentM.copyLocations(userLocations, patientLocations);
+    }
+
     //set selectedDate
     public void setSelectedDate(String sd) {
         selectedDate = sd;
@@ -122,29 +123,6 @@ public class MainActivity extends FragmentActivity {
             new GetUserLocationOneDay().execute(selectedDate);
             log.i("main", "asynctask " + String.valueOf(userLocations.size()));
         }
-    }
-
-    // Pass a selectedDate to PatientTrack fragment to find a matching
-    // Then show PatientTrack fragment
-    public void showPTrack (){
-        log.i("main", "pTrack");
-        PatientTrack fragment = (PatientTrack) fragmentManager.findFragmentByTag("patient track");
-        fragment.patientLookUp(selectedDate);
-        fragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.slide_in_right,0)
-                .show(pTrack)
-                .commit();
-    }
-
-    // Then hide PatientTrack fragment
-    public void hidePTrack(){
-        log.i("main", "hide pTrack");
-
-        fragmentManager.beginTransaction()
-                .setCustomAnimations(0, R.anim.slide_out_left)
-                .hide(pTrack)
-                .hide(showPath)
-                .commit();
     }
 
     //set patientLocations array
@@ -164,54 +142,6 @@ public class MainActivity extends FragmentActivity {
     //return userlocations array
     public List<LocationStruct> getUserLocations(){
         return userLocations;
-    }
-
-    //mapping user's and patient's locations on the map fragment
-    public void showPathsOnMap(){
-        hideSideMenu();
-        Map fragmentM = (Map) fragmentManager.findFragmentByTag("map");
-        log.i("main", "userloc size " + String.valueOf(userLocations.size())+
-                "patientloc size "+ String.valueOf(patientLocations.size()));
-
-        fragmentM.copyLocations(userLocations, patientLocations);
-    }
-
-    @Override
-    public void onPause (){
-        super.onPause();
-        fragmentManager.beginTransaction()
-                .remove(pTrack)
-                .remove(showPath)
-                .remove(sideMenu)
-                .remove(map)
-                .commit();
-    }
-
-    @Override
-    public void onRestart(){
-        super.onRestart();
-        if (savedInstance != null){
-            fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, map, "map")
-                    .show(map)
-                    .commit();
-
-            fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, sideMenu, "side Menu")
-                    .hide(sideMenu)
-                    .commit();
-
-            fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, showPath, "show user path")
-                    .hide(showPath)
-                    .commit();
-
-            fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, pTrack, "patient track")
-                    .hide(pTrack)
-                    .commit();
-
-        }
     }
 
     private class GetUserLocationOneDay extends AsyncTask<String, Void, Long>{

@@ -35,7 +35,6 @@ public class PatientTrack extends ListFragment {
     InputStream inputStream;
     List <LocationStruct> userLocations = new ArrayList();  //user's locations
     List <LocationStruct> tracks = new ArrayList<>();       //patient's locations
-    List <String> listItem = new ArrayList<>();     //List item on the fragment
 
     getPatientLocation asyncTask;
     boolean isNeeded = false;
@@ -46,45 +45,13 @@ public class PatientTrack extends ListFragment {
         //get path to Download file in the device
         String uri = Environment.getExternalStorageDirectory().toString();
         uri = uri +"/Download/patient.geojson";
-
+        log.i("patientTrack", "onCreate");
         log.i("patientTrack", uri);
         file = new File(uri);
         if (file != null)
             log.i("patientTrack", "onCreate file good");
         //else
 
-    }
-
-    @Override
-    public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
-        super.onCreateView(inflater,container,savedInstanceState);
-        View view = inflater.inflate(R.layout.show_path, container,false);
-
-        //set title
-        TextView textView = (TextView)view.findViewById(R.id.title);
-        textView.setText("Patient Track");
-
-        return view;
-    }
-
-    @Override
-    public void onActivityCreated (Bundle savedInstanceState){
-        super.onActivityCreated(savedInstanceState);
-
-        log.i("PatientTrack", "onactivity");
-
-        //should be changed when there are more than one patient with names
-        listItem.add("One patient");
-
-        setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, listItem));
-
-    }
-
-    @Override
-    public void onListItemClick(ListView l, View v, int position, long id){
-        log.i("showpath", String.valueOf(position));
-
-        //add more when there are more than one patients
     }
 
     //look up matching patient on the selectedDate in the file
@@ -227,13 +194,13 @@ public class PatientTrack extends ListFragment {
         userLocations = ((MainActivity)getActivity()).getUserLocations();
     }
 
-    //pass the patient's locations to fragmentActivity
+/*    //pass the patient's locations to fragmentActivity
     //Call FragmentActivity's hidePTrack();
     public void goBack(){
         ((MainActivity)getActivity()).hidePTrack();
 
     }
-
+*/
     //asynctask to read geojson file
     public class getPatientLocation extends AsyncTask<String, Void, Void> {
 
@@ -241,7 +208,6 @@ public class PatientTrack extends ListFragment {
 
             try {
                 inputStream = new FileInputStream(file);
-                log.i("patientTrack", "onCreate 2");
                 //read through the geojson file
                 tracks.clear();
                 tracks = readJsonStream(inputStream, params[0]);
@@ -256,11 +222,45 @@ public class PatientTrack extends ListFragment {
         protected void onPostExecute (Void result){
             ((MainActivity)getActivity()).setPatientLocations(tracks);
             log.i ("ptrack", "finish reading " + String.valueOf(tracks.size()));
-            goBack();
+            //goBack();
         }
 
     }
 
+/************************************************************
+ *
+ * if more than one patient exists in the data
+@Override
+public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+    super.onCreateView(inflater,container,savedInstanceState);
+    View view = inflater.inflate(R.layout.side_menu, container,false);
 
+    //set title
+    TextView textView = (TextView)view.findViewById(R.id.title);
+    textView.setText("Patient Track");
 
+    return view;
+}
+
+    @Override
+    public void onActivityCreated (Bundle savedInstanceState){
+        super.onActivityCreated(savedInstanceState);
+
+        log.i("PatientTrack", "onactivity");
+
+        //should be changed when there are more than one patient with names
+        listItem.add("One patient");
+
+        setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, listItem));
+
+    }
+
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id){
+        log.i("showpath", String.valueOf(position));
+
+        //add more when there are more than one patients
+    }
+
+**************************************************************/
 }
