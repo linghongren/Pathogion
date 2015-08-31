@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -18,6 +19,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -43,7 +45,7 @@ public class Map extends Fragment implements
     List<Circle> effectArea = new ArrayList<>();
 
     static int ESTIMATED_DISTANCE = 100;
-    static int EFFECTED_RADIUS = 100;
+
 
     boolean isPre = false;
 
@@ -76,53 +78,37 @@ public class Map extends Fragment implements
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(originLoc, (float) 15.0));
     }
 
-    public void copyLocations (List<LocationStruct> userLoc, List<LocationStruct> patientLoc){
-        if (userLoc.size()!=0 && patientLoc.size()!=0){
-            log.i ("map", " copyLocation");
-            locU = userLoc;
-            locP = patientLoc;
 
-            if (isPre)
-                clearMapping();
+    public void executeAll(){
 
-            new effectedLine().execute();
-            new effectedArea().execute();
+        locU = (((MainActivity)getActivity()).getUserLocations());
+        locP = (((MainActivity)getActivity()).getPatientLocations());
+        effectedPoints = (((MainActivity)getActivity()).getEffectedPoints());
+        intersectionPoints = (((MainActivity)getActivity()).getIntersectionPoints());
 
-            mapLocations();
+        mapUserLocation();
+        mapPatientLocation();
+        mapIntersection();
+        mapEffectedArea();
 
-            isPre = true;
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (Polyline poly: polyU) {
+            builder.include(poly.getPoints().get(0));
         }
-        else if (isPre){
-            log.i("map", "clear mapping");
-            clearMapping();
+        LatLngBounds bounds = builder.build();
+        int padding = 2; // offset from edges of the map in pixels
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
 
-            isPre = false;
-        }
+        map.moveCamera(cu);
+
+        map.animateCamera(cu);
     }
 
-    //map both userLoc(black) and patientLoc(red) on the map.
-    public void mapLocations (){
-
-        if (locP.size()>0){
-            log.i("map", "map patient location" + String.valueOf(locP.size()));
-            int size = locP.size();
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(locP.get(size - 1).coor, (float) 12.0));
-
-            mapPatientLocation();
-
-        }
-        if (locU.size()>0){
-            log.i("map", "map userLocation " + String.valueOf(locU.size()));
-            int size = locU.size();
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(locU.get(size - 1).coor, (float) 12.0));
-
-            mapUserLocation();
-        }
-
-    }
 
     public void mapUserLocation(){
         List <LatLng> loc = new ArrayList<>();
+
+        log.i("map", String.valueOf(locU.size()));
 
         LatLng temp = locU.get(0).coor;
         Distance preD = new Distance(temp);
@@ -143,6 +129,7 @@ public class Map extends Fragment implements
 
                 polyU.add(pol);
             }
+
             else {
                 Polyline pol = map.addPolyline(new PolylineOptions().geodesic(true)
                         .add(loc.get(loop-1), loc.get(loop)));
@@ -197,108 +184,7 @@ public class Map extends Fragment implements
         }
     }
 
-    //compare points and find effected points.
-    public void findEffectedPoints(){
-        int uSize = locU.size();
-        int pSize = locP.size();
-        log.i("map", String.valueOf(locU.size()) + " " + String.valueOf(pSize));
 
-        for (int i = 0; i < pSize; i++){
-            Distance dis1 = new Distance(locP.get(i).coor);
-            Time time1 = new Time(locP.get(i).time);
-
-            for (int j = 0; j < uSize; j++){
-                Time time2 = new Time(locU.get(j).time);
-                //if a user's time is five minutes after the patient's time
-                if (time2.timeAfter(time1.getTimeC())){
-//                    log.i("map", "break");
-                    break;
-                }
-
-//                log.i("map", time1.getTimeD().toString() + " " + time2.getTimeD().toString());
-                if (time1.closeOnTime(time2.getTimeC())){
-                    Distance dis2 = new Distance(locU.get(j).coor);
-                    if (dis1.findDistance(dis2) < EFFECTED_RADIUS){
-                        if (effectedPoints.size()>0) {
-                            int s = effectedPoints.size();
-                            if ((effectedPoints.get(s-1).latitude != dis2.getLatLng().latitude)
-                                    && (effectedPoints.get(s - 1).longitude != dis2.getLatLng().longitude))
-                                effectedPoints.add(locP.get(i).coor);
-                        }
-                        else{
-                            effectedPoints.add(locP.get(i).coor);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public void findEffectedIntersectionLine(){
-        log.i("map", "find intersection line");
-        int uSize = locU.size();
-        int pSize = locP.size();
-
-        if (!(uSize > 0 && pSize> 0)){
-            return;
-        }
-
-        List <PointStruct> eqUser1 = new ArrayList<>();
-        List <PointStruct> eqPatient2 = new ArrayList<>();
-        eqUser1 = findEquations(locU);
-        eqPatient2 = findEquations(locP);
-
-        //these sizes should be one less than its corresponding LocationStruct sizes.
-        int uEq1 = eqUser1.size();
-        int pEq2 = eqPatient2.size();
-
-        for (int i = 0; i < uEq1; i ++){
-            LatLng userTemp1 = locU.get(i).coor;
-            LatLng userTemp2 = locU.get(i+1).coor;
-/*            Time uTime1 = new Time(locU.get(i).time);
-            Time uTime2 = new Time(locU.get(i+1).time);
-
-*/
-            double coef = eqUser1.get(i).coefficient;
-            double intercept = eqUser1.get(i).yIntercept;
-//            log.i("map", "find line " + String.valueOf(coef) + " " + String.valueOf(intercept));
-            for (int j = 0; j < pEq2; j++){
-/*                Time pTime1 = new Time(locP.get(i).time);
-                Time pTime2 = new Time(locP.get(i+1).time);
-
-                //uTime and pTime do not intersect
-                if (!((uTime1.timeBetween(pTime1.getTimeC(), pTime2.getTimeC()))
-                    || (uTime2.timeBetween(pTime1.getTimeC(), pTime2.getTimeC()))
-                        || (pTime1.timeBetween(uTime1.getTimeC(), uTime2.getTimeC()))
-                            || (pTime2.timeBetween(uTime1.getTimeC(), uTime2.getTimeC())))){
-                    continue;
-                }
-*/
-                double x = (eqPatient2.get(j).yIntercept - intercept)/
-                        (coef - eqPatient2.get(j).coefficient);
-
-//                log.i("map", "get double " +String.valueOf(x));
-                if (Double.isInfinite(x))
-
-                    x = (double) 0;
-
- //               log.i("map", "longitudes "+ String.valueOf(userTemp1.latitude) + " " + String.valueOf(userTemp2.latitude));
-                //if the intersection point is between user's points
-                if ( (x < userTemp1.latitude && x > userTemp2.latitude)
-                        || (x <userTemp2.latitude && x> userTemp1.latitude)){
-                    double y = (coef * x) + intercept;
-//                    log.i("map", "get double y " +String.valueOf(y));
-
-//                    log.i("map", "longitudes "+ String.valueOf(userTemp1.longitude) + " " + String.valueOf(userTemp2.longitude));
-                    if ((y <userTemp1.longitude && y > userTemp2.longitude)
-                        || (y < userTemp2.longitude && y > userTemp1.longitude)){
-                        intersectionPoints.add(new LatLng(x,y));
-                    }
-                }
-            }
-        }
-        log.i("map", "size of intersection points " + String.valueOf(intersectionPoints.size()));
-    }
 
     public void mapIntersection(){
         log.i("map", "map intersection");
@@ -316,33 +202,7 @@ public class Map extends Fragment implements
             }
         }
     }
-    public List<PointStruct> findEquations(List<LocationStruct> ls){
-        log.i("map", "find equations");
-        List<PointStruct> eq = new ArrayList<>();
-        int lsSize = ls.size();
-        if (lsSize >0) {
-            for (int i = 1; i < lsSize; i++) {
-                PointStruct pt = new PointStruct();
-                //(y2 - y1 )/ (x2 - x1)
-                pt.coefficient = (ls.get(i).coor.latitude - ls.get(i - 1).coor.latitude)/
-                            (ls.get(i).coor.longitude-ls.get(i-1).coor.longitude);
 
-                if (Double.isNaN(pt.coefficient))
-                    pt.coefficient = (double) 0;
-
-                pt.yIntercept = ls.get(i - 1).coor.longitude - pt.coefficient * ls.get(i-1).coor.latitude;
-
-//                log.i("map", "coef " + String.valueOf(pt.coefficient) + " " + String.valueOf(pt.yIntercept));
-                eq.add(pt);
-            }
-        }
-        return eq;
-    }
-
-    private class PointStruct{
-        double coefficient;
-        double yIntercept;
-    }
 
     public void clearMapping(){
         for (int i = 0; i < markerP.size(); i ++){
@@ -360,10 +220,12 @@ public class Map extends Fragment implements
         effectArea.clear();
         effectedPoints.clear();
         intersectionPoints.clear();
+
+        isPre = false;
     }
 
 
-
+/*
     //asynctask to find effected Area
     private class effectedArea extends AsyncTask<Void, Void, Void>{
 
@@ -393,7 +255,7 @@ public class Map extends Fragment implements
         }
     }
 
-
+*/
 }
 
 

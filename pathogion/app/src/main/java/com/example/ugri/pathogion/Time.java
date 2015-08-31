@@ -1,8 +1,8 @@
 package com.example.ugri.pathogion;
 
 /**
- * Created by UGRI on 4/30/15.
- * manage all date formats
+ *
+ * manage all helper functions like, time, distance
  */
 
 import android.location.Location;

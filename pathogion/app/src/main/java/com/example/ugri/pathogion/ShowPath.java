@@ -65,8 +65,8 @@ public class ShowPath extends ListFragment {
         log.i("showpath", String.valueOf(position));
             //when an date is selected, pass the date to fragmentActivity
         selected = pathDate.get(position);
-        ((MainActivity)getActivity()).setSelectedDate(selected);
-        showPTrack();
+        ((MainActivity)getActivity()).afterADateIsSelected(selected);
+ //       showPTrack();
 
     }
 
@@ -77,17 +77,18 @@ public class ShowPath extends ListFragment {
         log.i("showpath", "get date finish");
     }
 
-
-    //pass the selected date to fragmentActivity
-/*    //calling main activity's hidePathList function.
-    public void goBack(){
-        ((MainActivity)getActivity()).hidePathList(); //pass date to main activity
-    }
-*/
+    /*
     //Call fragmentActivity's showPTrack()
     public void showPTrack(){
-        ((MainActivity)getActivity()).showPTrack();
+//        ((MainActivity)getActivity()).showPTrack();
     }
-
+/*
+    public void clearDb(){
+        log.i(" clearDb", "clear");
+        getActivity().deleteDatabase("userLocationsData");
+        Database db = new Database(getActivity().getApplicationContext());
+        db.insertSampleData();
+    }
+*/
 }
 

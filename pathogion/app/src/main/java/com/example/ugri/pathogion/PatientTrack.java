@@ -4,18 +4,10 @@ package com.example.ugri.pathogion;
  * Parse Geojson file that has Patient's track info
  */
 
-import android.app.ListFragment;
-import android.os.AsyncTask;
-import android.os.Bundle;
+
 import android.os.Environment;
 import android.util.JsonReader;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -28,20 +20,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class PatientTrack extends ListFragment {
+public class PatientTrack {
 
     Log log;
     File file;
     InputStream inputStream;
-    List <LocationStruct> userLocations = new ArrayList();  //user's locations
     List <LocationStruct> tracks = new ArrayList<>();       //patient's locations
+    String date;
 
-    getPatientLocation asyncTask;
-    boolean isNeeded = false;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState){
-        super.onCreate(savedInstanceState);
+    PatientTrack(String dt){
+        //get file link
+        getFile();
+        date = dt;
+
+    }
+    public void getFile() {
         //get path to Download file in the device
         String uri = Environment.getExternalStorageDirectory().toString();
         uri = uri +"/Download/patient.geojson";
@@ -55,31 +49,54 @@ public class PatientTrack extends ListFragment {
     }
 
     //look up matching patient on the selectedDate in the file
-    public void patientLookUp ( String selectedDate ) {
-        String wantedTime = selectedDate;
-        log.i("patientTrack getTime", wantedTime);
-        if (! wantedTime.equals("") ){
-            asyncTask = new getPatientLocation();
-            asyncTask.execute(wantedTime);
+    public void patientLookUp ( ) {
+        log.i("patientTrack getTime", date);
+        if (! date.equals("") ){
+            findPatientLocation();
         }
     }
 
+    //read geojson file
+    public void findPatientLocation () {
+
+        try {
+            inputStream = new FileInputStream(file);
+            //read through the geojson file
+            tracks.clear();
+            readJsonStream();
+            //filter again
+
+        } catch (IOException e) {
+            log.i("patientTrack", "on Create error");
+
+        }
+        //goBack();
+
+    }
+
+    public List <LocationStruct> getPatientLocations (){
+
+        log.i ("ptrack", "finish reading " + String.valueOf(tracks.size()));
+        return tracks;
+    }
+
+
+
     //parsing the geojson file
-    public List <LocationStruct> readJsonStream(InputStream in, String wantedTime) throws IOException {
-        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+    public void readJsonStream() throws IOException {
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
         try {
             log.i("patientTrack", "readJsonStream");
-            return readMessagesArray(reader, wantedTime);
+            readMessagesArray(reader);
         }
-            finally {
-                reader.close();
+        finally {
+            reader.close();
         }
     }
 
     //get all latitude and longitude on wantedTime in reader
     //read all features
-    public List <LocationStruct> readMessagesArray(JsonReader reader, String wantedTime) throws IOException {
-        List <LocationStruct> coor = new ArrayList();
+    public void readMessagesArray(JsonReader reader) throws IOException {
 
         LocationStruct temp;
 
@@ -92,9 +109,7 @@ public class PatientTrack extends ListFragment {
                 reader.beginArray();
                 //start parsing features
                 while (reader.hasNext()){
-                    temp = readFeatures(reader, wantedTime); //get coordinate
-                    if (isNeeded)   //a variable that shows whether a coordinate is on the given date
-                        coor.add(temp);
+                    readFeatures(reader); //get coordinate
                 }
                 reader.endArray();
             }
@@ -103,13 +118,11 @@ public class PatientTrack extends ListFragment {
         }
 
         reader.endObject();
-
-        return coor;
     }
 
     //read features in reader
     //set isNeeded to true if this coordinate is on the wantTime
-    public LocationStruct readFeatures (JsonReader reader, String wantTime) throws IOException{
+    public void readFeatures (JsonReader reader) throws IOException{
         LocationStruct features = new LocationStruct();
 
         reader.beginObject();
@@ -128,7 +141,7 @@ public class PatientTrack extends ListFragment {
 
         reader.endObject();
 
-        Time time1 = new Time(wantTime, 1);
+        Time time1 = new Time(date, 1);
         Time time2 = new Time(features.time);
 
 
@@ -136,13 +149,7 @@ public class PatientTrack extends ListFragment {
         //if yes, set isNeeded to true;
         //if not, set isNeeded to false;
         if (time1.onSameDay(time2.getTimeC()))
-            isNeeded = true;
-
-        else
-            isNeeded = false;
-
-
-        return features;
+            tracks.add(features);
     }
 
     //read a time in reader
@@ -189,78 +196,4 @@ public class PatientTrack extends ListFragment {
 
     }
 
-    //get userLocations from fragmentActivity
-    public void setUserLocations(){
-        userLocations = ((MainActivity)getActivity()).getUserLocations();
-    }
-
-/*    //pass the patient's locations to fragmentActivity
-    //Call FragmentActivity's hidePTrack();
-    public void goBack(){
-        ((MainActivity)getActivity()).hidePTrack();
-
-    }
-*/
-    //asynctask to read geojson file
-    public class getPatientLocation extends AsyncTask<String, Void, Void> {
-
-        protected Void doInBackground(String... params){
-
-            try {
-                inputStream = new FileInputStream(file);
-                //read through the geojson file
-                tracks.clear();
-                tracks = readJsonStream(inputStream, params[0]);
-                //filter again
-
-            } catch (IOException e) {
-                log.i("patientTrack", "on Create error");
-
-            }
-            return null;
-        }
-        protected void onPostExecute (Void result){
-            ((MainActivity)getActivity()).setPatientLocations(tracks);
-            log.i ("ptrack", "finish reading " + String.valueOf(tracks.size()));
-            //goBack();
-        }
-
-    }
-
-/************************************************************
- *
- * if more than one patient exists in the data
-@Override
-public View onCreateView (LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
-    super.onCreateView(inflater,container,savedInstanceState);
-    View view = inflater.inflate(R.layout.side_menu, container,false);
-
-    //set title
-    TextView textView = (TextView)view.findViewById(R.id.title);
-    textView.setText("Patient Track");
-
-    return view;
-}
-
-    @Override
-    public void onActivityCreated (Bundle savedInstanceState){
-        super.onActivityCreated(savedInstanceState);
-
-        log.i("PatientTrack", "onactivity");
-
-        //should be changed when there are more than one patient with names
-        listItem.add("One patient");
-
-        setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, listItem));
-
-    }
-
-    @Override
-    public void onListItemClick(ListView l, View v, int position, long id){
-        log.i("showpath", String.valueOf(position));
-
-        //add more when there are more than one patients
-    }
-
-**************************************************************/
 }

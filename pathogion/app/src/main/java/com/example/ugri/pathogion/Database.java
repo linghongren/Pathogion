@@ -1,7 +1,7 @@
 package com.example.ugri.pathogion;
 
 /**
- * set up SQLite and methods for location storage
+ * set up SQLite and methods to store and retrieve user locations and date
  */
 
 import android.content.ContentValues;
@@ -53,6 +53,7 @@ public class Database extends SQLiteOpenHelper {
     Database(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
+
 
     @Override
     public void onCreate(SQLiteDatabase db) {

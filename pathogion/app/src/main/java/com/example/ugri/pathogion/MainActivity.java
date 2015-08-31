@@ -2,14 +2,16 @@ package com.example.ugri.pathogion;
 
 
 /**
- * FragmentActivity that controls communications between fragments
+ * FragmentActivity that controls all fragment activities and initialize thread management.
  */
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -27,17 +29,13 @@ public class MainActivity extends FragmentActivity {
 
     //declare fragments
     UserLocation userLoc = new UserLocation();  //fragment without UI, records location updates
-    SideMenu sideMenu = new SideMenu(); //side menu with options
     Map map = new Map();                //show map and mapping
     ShowPath showPath = new ShowPath(); //fragment for user's tracks
-    PatientTrack pTrack = new PatientTrack();   //fragment for patient's tracks
+    SideMenu sideMenu = new SideMenu();
+    RunnableManagement mRunMgnt = new RunnableManagement();
 
-    List<LocationStruct> userLocations = new ArrayList();   //array with user's locations
-    List<LocationStruct> patientLocations = new ArrayList<>(); //array with matched patient's locations.
+
     String selectedDate = "";   //selected Date to compare
-    Bundle savedInstance;
-
-    Database db;
 
     Log log; // for logcat
 
@@ -46,7 +44,6 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        savedInstance = savedInstanceState;
         if (savedInstanceState == null) {
             //add fragment to the activity one by one. The order is important
             fragmentManager.beginTransaction()
@@ -54,29 +51,23 @@ public class MainActivity extends FragmentActivity {
                     .commit();
 
             fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, map, "map")
+                    .add(map, "map")
                     .commit();
         }
     }
 
+    //show ShowPath fragment
+    public void showSideMenu(View view){
+        log.i("main","show path");
 
-    //show SideMenu fragment
-    public void callSideMenu(View view){
-        log.i("main", "show side menu");
+        Fragment fragment = fragmentManager.findFragmentByTag("side menu");
 
-        if (fragmentManager.findFragmentByTag("side menu") == null) {
+        if (fragment == null) {
+
             fragmentManager.beginTransaction()
                     .setCustomAnimations(R.anim.slide_in_right, 0)
                     .add(R.id.fragment_container, sideMenu, "side menu")
                     .commit();
-        }
-        else {
-            if (fragmentManager.findFragmentByTag("show path")!=null){
-                fragmentManager.beginTransaction()
-                        .remove(showPath)
-                        .commit();
-            }
-
         }
     }
 
@@ -90,77 +81,65 @@ public class MainActivity extends FragmentActivity {
                 .commit();
     }
 
-    // Pass a selectedDate to PatientTrack fragment to find a matching
-    // Then show PatientTrack fragment
-    public void showPTrack (){
-        log.i("main", "pTrack");
-        fragmentManager.beginTransaction()
-                .add(pTrack, "patient track")
-                .commit();
+    //called from ShowPath
+    //find four needed arrays of information
+    public void afterADateIsSelected(String sd){
+        //get the sd from ShowPath and save to selectedDate;
+        setSelectedDate (sd);
 
-        pTrack.patientLookUp(selectedDate);
+        //remove the showpath fragment
+        removeShowPath();
+
+        //fetch user and patient location information of the given date
+        mRunMgnt.setRunnableManagement(this, selectedDate);
+        mRunMgnt.executeAll();
+
+        while (!mRunMgnt.isEmpty()){};
+        afterAllNeededArrays();
     }
 
-    //mapping user's and patient's locations on the map fragment
-    public void showPathsOnMap(){
-        fragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.slide_out_left, 0)
-                .detach(showPath)
-                .commit();
-
-        Map fragmentM = (Map) fragmentManager.findFragmentByTag("map");
-        log.i("main", "userloc size " + String.valueOf(userLocations.size())+
-                "patientloc size "+ String.valueOf(patientLocations.size()));
-
-        fragmentM.copyLocations(userLocations, patientLocations);
+    public void afterAllNeededArrays(){
+        map.executeAll();
     }
 
     //set selectedDate
     public void setSelectedDate(String sd) {
         selectedDate = sd;
         log.i("main", "selected " + selectedDate);
-        if (selectedDate != "") {
-            new GetUserLocationOneDay().execute(selectedDate);
-            log.i("main", "asynctask " + String.valueOf(userLocations.size()));
-        }
+
+        removeShowPath();
     }
 
-    //set patientLocations array
-    public void setPatientLocations(List <LocationStruct> pLocs){
-        patientLocations = pLocs;
-        log.i("main size of pTracks", String.valueOf(patientLocations.size()));
-        if (patientLocations.size()>1)
-            log.i ("hidepatrack", "more than one record");
+    public void removeShowPath(){
+        fragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.slide_out_left, 0)
+                .detach(showPath)
+                .commit();
     }
 
-    //set userLocations array
-    public void setUserLocations(List<LocationStruct> ls){
-        log.i("main", "getUserLocations");
-        userLocations = ls;
-    }
-
-    //return userlocations array
     public List<LocationStruct> getUserLocations(){
-        return userLocations;
+
+        return mRunMgnt.getUserLocations();
     }
 
-    private class GetUserLocationOneDay extends AsyncTask<String, Void, Long>{
-        Database db = new Database(getApplicationContext());
+    public List<LocationStruct> getPatientLocations(){
 
-        protected Long doInBackground(String... params){
-            long result = 0;
-            log.i("main", "async task "+ params[0]);
-            db.getLatLngGivenDate(params[0]);
-            return result;
-        }
+        return mRunMgnt.getPatientLocations();
 
-        protected void onPostExecute(Long result) {
-            if (result == 0) {
-                setUserLocations(db.passLatLngDate());
-                log.i("main", "asynctask done " + String.valueOf(userLocations.size()));
-            }
-        }
     }
+
+    public List<LatLng> getEffectedPoints(){
+
+        return mRunMgnt.getEffectedPoints();
+
+    }
+
+    public List<LatLng> getIntersectionPoints (){
+
+        return mRunMgnt.getIntersectionPoints();
+
+    }
+
 
 }
 
