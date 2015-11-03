@@ -79,6 +79,7 @@ public class UserLocation extends Fragment implements
 
     @Override
     public void onConnected(Bundle connectionHint) {
+//        db.insertSampleData();
         //start updating locations
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest,
                 this);
@@ -91,6 +92,7 @@ public class UserLocation extends Fragment implements
 
     @Override
     public void onLocationChanged(Location location) {
+
         db.insertData(location.getLatitude(), location.getLongitude(),
                 location.getAccuracy(), location.getTime());
 

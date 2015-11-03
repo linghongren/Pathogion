@@ -76,8 +76,8 @@ public class Map extends Fragment implements
 
         //move Camera to focus on one thing
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(originLoc, (float) 15.0));
-    }
 
+    }
 
     public void executeAll(){
 
@@ -86,10 +86,13 @@ public class Map extends Fragment implements
         effectedPoints = (((MainActivity)getActivity()).getEffectedPoints());
         intersectionPoints = (((MainActivity)getActivity()).getIntersectionPoints());
 
+
         mapUserLocation();
         mapPatientLocation();
-        mapIntersection();
-        mapEffectedArea();
+   //     mapIntersection();
+ //       mapEffectedArea();
+/*
+        //adjusting camera view
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for (Polyline poly: polyU) {
@@ -102,6 +105,7 @@ public class Map extends Fragment implements
         map.moveCamera(cu);
 
         map.animateCamera(cu);
+*/
     }
 
 
@@ -109,6 +113,9 @@ public class Map extends Fragment implements
         List <LatLng> loc = new ArrayList<>();
 
         log.i("map", String.valueOf(locU.size()));
+
+        if (locU.size() <1)
+            return;
 
         LatLng temp = locU.get(0).coor;
         Distance preD = new Distance(temp);
@@ -142,11 +149,13 @@ public class Map extends Fragment implements
 
             loop ++;
         }
+
+        log.i("map", String.valueOf(polyU.size()));
     }
 
     public void mapPatientLocation (){
         List <LatLng> loc = new ArrayList<>();
-        log.i("map", "size of ls " + String.valueOf(locP.size()));
+        log.i("map", "size of pl " + String.valueOf(locP.size()));
         int loop = 0;
         while (loop < locP.size()){
             LatLng temp;
@@ -226,23 +235,19 @@ public class Map extends Fragment implements
 
 
 /*
-    //asynctask to find effected Area
-    private class effectedArea extends AsyncTask<Void, Void, Void>{
+    //asynctask mapping
+    private class MapUserLoc extends AsyncTask<Void, Void, Void>{
 
         protected Void doInBackground(Void... params){
-
-            findEffectedPoints();
-
 
             return null;
         }
 
         protected void onPostExecute(Void result) {
-            log.i("map", "after the loop add " + String.valueOf(effectedPoints.size()));
-            mapEffectedArea();
+            mapUserLocation();
         }
     }
-
+/*
     private class effectedLine extends AsyncTask <Void, Void, Void>{
         protected Void doInBackground (Void ... params){
             findEffectedIntersectionLine();

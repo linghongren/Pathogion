@@ -56,8 +56,7 @@ public class SideMenu extends ListFragment {
             case 0:
                 showPathDate();
                 break;
-            case 1:
-//                clearDb();
+            case 3:
                 break;
         }
 
