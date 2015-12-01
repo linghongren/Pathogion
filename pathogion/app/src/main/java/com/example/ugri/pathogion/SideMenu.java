@@ -11,6 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import android.widget.TextView;
@@ -19,15 +21,13 @@ import android.widget.TextView;
 
 public class SideMenu extends ListFragment {
 
-    String[]options = {"Show Path Date", "Delete Database","Clear Map","Return"};
-
+    String[]options = {"Show Path Date","Return"};
     Log log;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         log.i("sideMenu", "oncreate");
-
     }
 
     @Override
@@ -39,6 +39,8 @@ public class SideMenu extends ListFragment {
         TextView textView = (TextView)view.findViewById(R.id.title);
         textView.setText("Pathogion");
 
+        // Create a LinearLayout in which to add the ImageView
+
         return view;
     }
 
@@ -47,6 +49,7 @@ public class SideMenu extends ListFragment {
         super.onActivityCreated(savedInstanceState);
 
         setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, options));
+
     }
 
     @Override
@@ -56,7 +59,8 @@ public class SideMenu extends ListFragment {
             case 0:
                 showPathDate();
                 break;
-            case 3:
+            case 1:
+                returnToMap();
                 break;
         }
 
@@ -68,6 +72,9 @@ public class SideMenu extends ListFragment {
         ((MainActivity)getActivity()).showPath();
     }
 
+    public void returnToMap(){
+        ((MainActivity)getActivity()).hideSideMenu();
+    }
 
 /*    //a button
     public void clearDb(){

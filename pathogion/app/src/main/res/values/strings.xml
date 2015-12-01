@@ -4,6 +4,7 @@
     <string name = "app_name">Pathogion</string>
     <!-- main activity -->
     <string name = "button_sidemenu">Options</string>
+    <string name = "map">Map</string>
 
     <string name = "action_settings">Settings</string>
 

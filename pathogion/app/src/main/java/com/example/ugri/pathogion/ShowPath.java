@@ -42,7 +42,7 @@ public class ShowPath extends ListFragment {
         super.onCreateView(inflater,container,savedInstanceState);
 
         log.i("showPath", "created");
-        View view = inflater.inflate(R.layout.side_menu, container,false);
+        View view = inflater.inflate(R.layout.path_menu, container,false);
 
         //set title
         TextView textView = (TextView)view.findViewById(R.id.title);
@@ -66,7 +66,6 @@ public class ShowPath extends ListFragment {
             //when an date is selected, pass the date to fragmentActivity
         selected = pathDate.get(position);
         ((MainActivity)getActivity()).afterADateIsSelected(selected);
- //       showPTrack();
 
     }
 
@@ -77,18 +76,5 @@ public class ShowPath extends ListFragment {
         log.i("showpath", "get date finish");
     }
 
-    /*
-    //Call fragmentActivity's showPTrack()
-    public void showPTrack(){
-//        ((MainActivity)getActivity()).showPTrack();
-    }
-/*
-    public void clearDb(){
-        log.i(" clearDb", "clear");
-        getActivity().deleteDatabase("userLocationsData");
-        Database db = new Database(getActivity().getApplicationContext());
-        db.insertSampleData();
-    }
-*/
 }
 

@@ -16,9 +16,9 @@
          <!--fragment element that adds a google map to the app -->
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/map"
+            class="com.google.android.gms.maps.MapFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:name="com.google.android.gms.maps.MapFragment"/>
+            android:layout_height="match_parent"/>
 
         <Button
             android:id="@+id/button"
@@ -27,6 +27,7 @@
             android:text="@string/button_sidemenu"
             android:onClick="showSideMenu"
             android:layout_gravity="right|bottom" />
+
 
     </FrameLayout>
 

@@ -4,12 +4,9 @@ package com.example.ugri.pathogion;
  * Map fragment that handles mapping
  */
 
-import android.app.Fragment;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,11 +23,10 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 
-public class Map extends Fragment implements
+public class Map extends MapFragment implements
         OnMapReadyCallback {
 
     GoogleMap map;
@@ -80,6 +76,8 @@ public class Map extends Fragment implements
     }
 
     public void executeAll(){
+        if (isPre)
+            clearMapping();
 
         locU = (((MainActivity)getActivity()).getUserLocations());
         locP = (((MainActivity)getActivity()).getPatientLocations());
@@ -89,14 +87,21 @@ public class Map extends Fragment implements
 
         mapUserLocation();
         mapPatientLocation();
-   //     mapIntersection();
- //       mapEffectedArea();
-/*
+        mapIntersection();
+        mapEffectedArea();
+
+        isPre = true;
+        zoomingUserLoc();
+
+    }
+
+    //adjust zooming to include all user locations on the screen
+    public void zoomingUserLoc(){
         //adjusting camera view
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        for (Polyline poly: polyU) {
-            builder.include(poly.getPoints().get(0));
+        for (int n = 0; n < locU.size(); n++) {
+            builder.include(locU.get(n).coor);
         }
         LatLngBounds bounds = builder.build();
         int padding = 2; // offset from edges of the map in pixels
@@ -105,9 +110,7 @@ public class Map extends Fragment implements
         map.moveCamera(cu);
 
         map.animateCamera(cu);
-*/
     }
-
 
     public void mapUserLocation(){
         List <LatLng> loc = new ArrayList<>();
@@ -197,8 +200,9 @@ public class Map extends Fragment implements
 
     public void mapIntersection(){
         log.i("map", "map intersection");
-        int size = intersectionPoints.size();
 
+        int size = intersectionPoints.size();
+        log.i("map", "size of int " + String.valueOf(size));
         if (size>0){
             for (int i = 0; i < size; i++){
                 Circle circle = map.addCircle(new CircleOptions()
@@ -232,7 +236,6 @@ public class Map extends Fragment implements
 
         isPre = false;
     }
-
 
 /*
     //asynctask mapping
