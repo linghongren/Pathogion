@@ -342,7 +342,11 @@ public class RunnableManagement {
 
     }
 
+    public boolean isEmpty(){
+        while (mThreadPool.getActiveCount()>0) {};
 
+        return true;
+    }
 
     public List<LocationStruct> getUserLocations(){
 
